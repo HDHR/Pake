@@ -68,6 +68,11 @@ on:
         required: false
         type: boolean
         default: false
+      enable_drag_drop:
+        description: "Enable drag and drop functionality"
+        required: false
+        type: boolean
+        default: false
       targets:
         description: "Package formats (comma-separated: deb,appimage,rpm,zst)"
         required: false
@@ -164,6 +169,10 @@ jobs:
             ARGS+=("--hide-on-close")
           fi
 
+          if [ "${{ inputs.enable_drag_drop }}" == "true" ]; then
+            ARGS+=("--enable-drag-drop")
+          fi
+
           if [ -n "${{ inputs.targets }}" ] && [ "${{ runner.os }}" == "Linux" ]; then
             ARGS+=("--targets" "${{ inputs.targets }}")
           fi
@@ -216,6 +225,10 @@ jobs:
 
           if ("${{ inputs.hide_on_close }}" -eq "true") {
             $args += "--hide-on-close"
+          }
+
+          if ("${{ inputs.enable_drag_drop }}" -eq "true") {
+            $args += "--enable-drag-drop"
           }
 
           Write-Host "Running: node dist/cli.js $($args -join ' ')"
