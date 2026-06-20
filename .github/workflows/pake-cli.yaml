@@ -58,6 +58,16 @@ on:
         required: false
         type: boolean
         default: false
+      show_system_tray:
+        description: "Enable system tray"
+        required: false
+        type: boolean
+        default: false
+      hide_on_close:
+        description: "Exit to tray (Hide window on close instead of exiting)"
+        required: false
+        type: boolean
+        default: false
       targets:
         description: "Package formats (comma-separated: deb,appimage,rpm,zst)"
         required: false
@@ -146,6 +156,14 @@ jobs:
             ARGS+=("--multi-arch")
           fi
 
+          if [ "${{ inputs.show_system_tray }}" == "true" ]; then
+            ARGS+=("--show-system-tray")
+          fi
+
+          if [ "${{ inputs.hide_on_close }}" == "true" ]; then
+            ARGS+=("--hide-on-close")
+          fi
+
           if [ -n "${{ inputs.targets }}" ] && [ "${{ runner.os }}" == "Linux" ]; then
             ARGS+=("--targets" "${{ inputs.targets }}")
           fi
@@ -190,6 +208,14 @@ jobs:
 
           if ("${{ inputs.hide_title_bar }}" -eq "true") {
             $args += "--hide-title-bar"
+          }
+
+          if ("${{ inputs.show_system_tray }}" -eq "true") {
+            $args += "--show-system-tray"
+          }
+
+          if ("${{ inputs.hide_on_close }}" -eq "true") {
+            $args += "--hide-on-close"
           }
 
           Write-Host "Running: node dist/cli.js $($args -join ' ')"
