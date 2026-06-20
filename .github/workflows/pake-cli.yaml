@@ -63,6 +63,11 @@ on:
         required: false
         type: boolean
         default: false
+      start_to_tray:
+        description: "Start application minimized to system tray (requires 'Enable system tray' active)"
+        required: false
+        type: boolean
+        default: false
       hide_on_close:
         description: "Exit to tray (Hide window on close instead of exiting)"
         required: false
@@ -161,8 +166,12 @@ jobs:
             ARGS+=("--multi-arch")
           fi
 
-          if [ "${{ inputs.show_system_tray }}" == "true" ]; then
+          if [ "${{ inputs.show_system_tray }}" == "true" ] || [ "${{ inputs.start_to_tray }}" == "true" ]; then
             ARGS+=("--show-system-tray")
+          fi
+
+          if [ "${{ inputs.start_to_tray }}" == "true" ]; then
+            ARGS+=("--start-to-tray")
           fi
 
           if [ "${{ inputs.hide_on_close }}" == "true" ]; then
@@ -219,8 +228,12 @@ jobs:
             $args += "--hide-title-bar"
           }
 
-          if ("${{ inputs.show_system_tray }}" -eq "true") {
+          if ("${{ inputs.show_system_tray }}" -eq "true" -or "${{ inputs.start_to_tray }}" -eq "true") {
             $args += "--show-system-tray"
+          }
+
+          if ("${{ inputs.start_to_tray }}" -eq "true") {
+            $args += "--start-to-tray"
           }
 
           if ("${{ inputs.hide_on_close }}" -eq "true") {
