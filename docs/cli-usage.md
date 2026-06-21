@@ -70,7 +70,7 @@ The URL is the link to the web page you want to package or the path to a local H
 
 ### [options]
 
-Various options are available for customization. Here are the most commonly used ones:
+Various options are available for customization. `pake --help` shows every supported CLI option. This page is the complete reference.
 
 | Option             | Description                                     | Example                                        |
 | ------------------ | ----------------------------------------------- | ---------------------------------------------- |
@@ -80,6 +80,8 @@ Various options are available for customization. Here are the most commonly used
 | `--height`         | Window height (default: 780px)                  | `--height 900`                                 |
 | `--hide-title-bar` | Immersive header (macOS only)                   | `--hide-title-bar`                             |
 | `--debug`          | Enable development tools                        | `--debug`                                      |
+| `--help`           | Show all CLI options                            | `--help`                                       |
+| `--version`        | Show CLI version                                | `--version`                                    |
 
 For complete options, see detailed sections below.
 
@@ -216,11 +218,13 @@ Set the version number of the packaged application to be consistent with the nam
 
 #### [dark-mode]
 
-Force Mac to package applications using dark mode, default is `false`.
+Force packaging applications using dark mode (supports macOS, Windows, and Linux), default is `false`.
 
 ```shell
 --dark-mode
 ```
+
+On Linux this goes through WebKitGTK, so whether a page renders dark also depends on the WebKitGTK build honoring the window theme and the site implementing `prefers-color-scheme: dark`.
 
 #### [disabled-web-shortcuts]
 
@@ -258,6 +262,19 @@ Set a regex pattern to determine which URLs should be considered internal (opene
 
 # Example: Only treat specific subdomains as internal
 --internal-url-regex "^https://(app|api)\\.example\\.com"
+```
+
+#### [safe-domain]
+
+A simpler way to keep trusted domains and their subdomains inside the app. This is useful for workspace callbacks and enterprise SSO flows, for example Slack plus Okta. Pake compiles this list into `internal_url_regex`; if `--internal-url-regex` is also set, the explicit regex wins.
+
+`--safe-domain` matches URL hosts only, not arbitrary path or query text.
+
+```shell
+--safe-domain <domains>
+
+# Keep Slack and Okta auth redirects inside the app
+--safe-domain slack.com,okta.com
 ```
 
 #### [multi-arch]
