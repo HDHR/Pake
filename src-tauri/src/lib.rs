@@ -22,7 +22,7 @@ const GDK_BACKEND: &str = "GDK_BACKEND";
 use app::{
     invoke::{
         clear_dock_badge, download_file, increment_dock_badge, send_notification, set_dock_badge,
-        set_dock_badge_label, update_theme_mode,
+        set_dock_badge_label, set_zoom, update_theme_mode,
     },
     setup::{set_global_shortcut, set_system_tray},
     window::{open_additional_window_safe, set_window, MultiWindowState},
@@ -155,7 +155,9 @@ pub fn run_app() {
             StateFlags::FULLSCREEN
         } else {
             // Prevent flickering on the first open.
-            StateFlags::all() & !StateFlags::VISIBLE
+            // Exclude FULLSCREEN so a prior --fullscreen build's persisted state
+            // doesn't force fullscreen on a rebuild without --fullscreen.
+            StateFlags::all() & !StateFlags::VISIBLE & !StateFlags::FULLSCREEN
         })
         .build();
 
@@ -192,6 +194,7 @@ pub fn run_app() {
             set_dock_badge_label,
             clear_dock_badge,
             update_theme_mode,
+            set_zoom,
         ])
         .setup(move |app| {
             app.manage(MultiWindowState::new(
