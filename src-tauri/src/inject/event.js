@@ -101,6 +101,10 @@ function isNonMacDesktop() {
   return /win|linux/i.test(getDesktopPlatform());
 }
 
+function isLinux() {
+  return /linux/i.test(getDesktopPlatform());
+}
+
 function hasImmersiveHeader(config = window["pakeConfig"] || {}) {
   return /mac/i.test(getDesktopPlatform())
     ? config.hide_title_bar === true
@@ -230,7 +234,7 @@ function pasteClipboardText(activeElement) {
 function handleClipboardShortcut(event) {
   if (
     event.isTrusted !== true ||
-    !isNonMacDesktop() ||
+    !isLinux() ||
     !event.ctrlKey ||
     event.metaKey ||
     event.altKey ||
@@ -282,7 +286,7 @@ function handleClipboardShortcut(event) {
 function handleClipboardPasteFallback(event) {
   if (
     event.isTrusted !== true ||
-    !isNonMacDesktop() ||
+    !isLinux() ||
     event.key?.toLowerCase() !== "v"
   ) {
     return false;

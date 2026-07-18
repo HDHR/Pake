@@ -31,7 +31,7 @@ function loadEventHelpers({
   selectionText = "",
   clipboardText = "clipboard text",
   clipboardReadRejects = false,
-  userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  userAgent = "Mozilla/5.0 (X11; Linux x86_64)",
 } = {}) {
   const source = fs.readFileSync(
     path.join(process.cwd(), "src-tauri/src/inject/event.js"),
@@ -193,7 +193,7 @@ function createKeyEvent(key, overrides = {}) {
 }
 
 describe("event clipboard shortcuts", () => {
-  it("copies selected page text on Windows and Linux without Tauri clipboard IPC", () => {
+  it("copies selected page text on Linux without Tauri clipboard IPC", () => {
     const context = loadEventHelpers({ selectionText: "selected text" });
     const handler = getClipboardShortcutHandler(context);
     const event = createKeyEvent("c");
@@ -426,6 +426,20 @@ describe("event clipboard shortcuts", () => {
 
   it("does not intercept copy when there is no editable target or selected text", () => {
     const context = loadEventHelpers();
+    const handler = getClipboardShortcutHandler(context);
+    const event = createKeyEvent("c");
+
+    handler(event);
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(context.execCommandCalls).toEqual([]);
+  });
+
+  it("does not intercept shortcuts on Windows", () => {
+    const context = loadEventHelpers({
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      selectionText: "selected text",
+    });
     const handler = getClipboardShortcutHandler(context);
     const event = createKeyEvent("c");
 

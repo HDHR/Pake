@@ -42,6 +42,9 @@ on:
         description: "Window height"
         required: false
         default: 780
+      system_tray_icon:
+        description: "System tray icon path or URL"
+        required: false
   workflow_call:
     inputs:
       name:
@@ -88,6 +91,10 @@ on:
         type: number
         required: false
         default: 780
+      system_tray_icon:
+        description: "System tray icon path or URL"
+        type: string
+        required: false
     secrets:
       PAKE_SIGNING_IDENTITY:
         required: false
@@ -218,6 +225,10 @@ jobs:
             ARGS+=("--incognito")
           fi
 
+          if [ -n "${{ inputs.system_tray_icon }}" ]; then
+            ARGS+=("--system-tray-icon" "${{ inputs.system_tray_icon }}")
+          fi
+
           ARGS+=("--width" "${{ inputs.width }}")
           ARGS+=("--height" "${{ inputs.height }}")
 
@@ -270,6 +281,10 @@ jobs:
 
           if [ "${{ inputs.incognito }}" = "true" ]; then
             ARGS+=("--incognito")
+          fi
+
+          if [ -n "${{ inputs.system_tray_icon }}" ]; then
+            ARGS+=("--system-tray-icon" "${{ inputs.system_tray_icon }}")
           fi
 
           ARGS+=("--width" "${{ inputs.width }}")
@@ -346,6 +361,10 @@ jobs:
 
           if ("${{ inputs.incognito }}" -eq "true") {
             $args += "--incognito"
+          }
+
+          if ("${{ inputs.system_tray_icon }}" -ne "") {
+            $args += "--system-tray-icon", "${{ inputs.system_tray_icon }}"
           }
 
           $args += "--width", "${{ inputs.width }}"

@@ -3,6 +3,7 @@ import fsExtra from 'fs-extra';
 
 import combineFiles from '@/utils/combine';
 import logger from '@/options/logger';
+import { downloadIcon } from '@/options/icon';
 import {
   generateSafeFilename,
   generateIdentifierSafeName,
@@ -325,8 +326,27 @@ export async function resolveSystemTrayIconPath(
     return defaultTrayIconPath;
   }
 
+  let localTrayIcon = systemTrayIcon;
+  if (systemTrayIcon.startsWith('http')) {
+    try {
+      logger.info(`✼ Downloading system tray icon from ${systemTrayIcon}...`);
+      const downloadedPath = await downloadIcon(systemTrayIcon);
+      if (downloadedPath) {
+        localTrayIcon = downloadedPath;
+      } else {
+        logger.warn(`✼ Failed to download system tray icon.`);
+        return defaultTrayIconPath;
+      }
+    } catch (err) {
+      logger.warn(
+        `✼ Failed to download system tray icon: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return defaultTrayIconPath;
+    }
+  }
+
   try {
-    const iconExt = path.extname(systemTrayIcon).toLowerCase();
+    const iconExt = path.extname(localTrayIcon).toLowerCase();
     if (iconExt !== '.png' && iconExt !== '.ico') {
       logger.warn(
         `✼ System tray icon must be .ico or .png, but you provided ${iconExt}.`,
@@ -335,15 +355,15 @@ export async function resolveSystemTrayIconPath(
       return defaultTrayIconPath;
     }
 
-    if (!(await fsExtra.pathExists(systemTrayIcon))) {
-      logger.warn(`✼ System tray icon "${systemTrayIcon}" was not found.`);
+    if (!(await fsExtra.pathExists(localTrayIcon))) {
+      logger.warn(`✼ System tray icon "${localTrayIcon}" was not found.`);
       logger.warn(`✼ Default system tray icon will be used.`);
       return defaultTrayIconPath;
     }
 
     const trayIconPath = `png/${safeAppName}${iconExt}`;
     const trayIcoPath = path.join(iconOutputDir, `${safeAppName}${iconExt}`);
-    await fsExtra.copy(systemTrayIcon, trayIcoPath);
+    await fsExtra.copy(localTrayIcon, trayIcoPath);
     return trayIconPath;
   } catch (err) {
     logger.warn(
@@ -441,6 +461,15 @@ async function mergeIcons(
 
   tauriConf.pake.system_tray_path = trayIconPath;
   delete tauriConf.app.trayIcon;
+
+  if (options.systemTrayIcon) {
+    if (!tauriConf.bundle.resources) {
+      tauriConf.bundle.resources = [];
+    }
+    if (!tauriConf.bundle.resources.includes(trayIconPath)) {
+      tauriConf.bundle.resources.push(trayIconPath);
+    }
+  }
 }
 
 async function injectCustomCode(

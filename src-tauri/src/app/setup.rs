@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
+    path::BaseDirectory,
     tray::{TrayIconBuilder, TrayIconEvent},
     AppHandle, Manager,
 };
@@ -42,8 +43,15 @@ pub fn set_system_tray(
 
     app.app_handle().remove_tray_by_id("pake-tray");
 
+    let app_name = app
+        .config()
+        .product_name
+        .clone()
+        .unwrap_or_else(|| "Pake".to_string());
+
     let mut tray_builder = TrayIconBuilder::new()
         .menu(&menu)
+        .tooltip(app_name)
         .on_menu_event(move |app, event| match event.id().as_ref() {
             "tray_new_window" => {
                 open_additional_window_safe(app);
@@ -56,10 +64,11 @@ pub fn set_system_tray(
             "show_app" => {
                 if let Some(window) = app.get_webview_window("pake") {
                     let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
                     #[cfg(target_os = "linux")]
                     if _init_fullscreen && !window.is_fullscreen().unwrap_or(false) {
                         let _ = window.set_fullscreen(true);
-                        let _ = window.set_focus();
                     }
                 }
             }
@@ -75,14 +84,23 @@ pub fn set_system_tray(
             _ => (),
         })
         .on_tray_icon_event(move |tray, event| {
-            if let TrayIconEvent::Click { button, .. } = event {
-                if button == tauri::tray::MouseButton::Left {
+            if let TrayIconEvent::Click {
+                button,
+                button_state,
+                ..
+            } = event
+            {
+                if button == tauri::tray::MouseButton::Left
+                    && button_state == tauri::tray::MouseButtonState::Up
+                {
                     if let Some(window) = tray.app_handle().get_webview_window("pake") {
                         let is_visible = window.is_visible().unwrap_or(false);
-                        if is_visible {
+                        let is_minimized = window.is_minimized().unwrap_or(false);
+                        if is_visible && !is_minimized {
                             let _ = window.hide();
                         } else {
                             let _ = window.show();
+                            let _ = window.unminimize();
                             let _ = window.set_focus();
                             #[cfg(target_os = "linux")]
                             if _init_fullscreen && !window.is_fullscreen().unwrap_or(false) {
@@ -97,7 +115,11 @@ pub fn set_system_tray(
     let resolved_icon = if tray_icon_path.is_empty() {
         app.default_window_icon().cloned()
     } else {
-        tauri::image::Image::from_path(tray_icon_path)
+        let resolved_path = app
+            .path()
+            .resolve(tray_icon_path, BaseDirectory::Resource)
+            .unwrap_or_else(|_| std::path::PathBuf::from(tray_icon_path));
+        tauri::image::Image::from_path(resolved_path)
             .ok()
             .or_else(|| app.default_window_icon().cloned())
     };

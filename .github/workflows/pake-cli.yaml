@@ -58,6 +58,29 @@ on:
         required: false
         type: boolean
         default: false
+      show_system_tray:
+        description: "Enable system tray"
+        required: false
+        type: boolean
+        default: false
+      start_to_tray:
+        description: "Start application minimized to system tray (requires 'Enable system tray' active)"
+        required: false
+        type: boolean
+        default: false
+      system_tray_icon:
+        description: "System tray icon path or URL"
+        required: false
+      hide_on_close:
+        description: "Exit to tray (Hide window on close instead of exiting)"
+        required: false
+        type: boolean
+        default: false
+      enable_drag_drop:
+        description: "Enable drag and drop functionality"
+        required: false
+        type: boolean
+        default: false
       targets:
         description: "Package formats (comma-separated: deb,appimage,rpm,zst)"
         required: false
@@ -146,6 +169,26 @@ jobs:
             ARGS+=("--multi-arch")
           fi
 
+          if [ "${{ inputs.show_system_tray }}" == "true" ] || [ "${{ inputs.start_to_tray }}" == "true" ]; then
+            ARGS+=("--show-system-tray")
+          fi
+
+          if [ "${{ inputs.start_to_tray }}" == "true" ]; then
+            ARGS+=("--start-to-tray")
+          fi
+
+          if [ -n "${{ inputs.system_tray_icon }}" ]; then
+            ARGS+=("--system-tray-icon" "${{ inputs.system_tray_icon }}")
+          fi
+
+          if [ "${{ inputs.hide_on_close }}" == "true" ]; then
+            ARGS+=("--hide-on-close")
+          fi
+
+          if [ "${{ inputs.enable_drag_drop }}" == "true" ]; then
+            ARGS+=("--enable-drag-drop")
+          fi
+
           if [ -n "${{ inputs.targets }}" ] && [ "${{ runner.os }}" == "Linux" ]; then
             ARGS+=("--targets" "${{ inputs.targets }}")
           fi
@@ -190,6 +233,26 @@ jobs:
 
           if ("${{ inputs.hide_title_bar }}" -eq "true") {
             $args += "--hide-title-bar"
+          }
+
+          if ("${{ inputs.show_system_tray }}" -eq "true" -or "${{ inputs.start_to_tray }}" -eq "true") {
+            $args += "--show-system-tray"
+          }
+
+          if ("${{ inputs.start_to_tray }}" -eq "true") {
+            $args += "--start-to-tray"
+          }
+
+          if ("${{ inputs.system_tray_icon }}" -ne "") {
+            $args += "--system-tray-icon", "${{ inputs.system_tray_icon }}"
+          }
+
+          if ("${{ inputs.hide_on_close }}" -eq "true") {
+            $args += "--hide-on-close"
+          }
+
+          if ("${{ inputs.enable_drag_drop }}" -eq "true") {
+            $args += "--enable-drag-drop"
           }
 
           Write-Host "Running: node dist/cli.js $($args -join ' ')"
