@@ -1417,7 +1417,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const attachObserver = () => {
-      const target = typeof document?.querySelector === "function" ? document.querySelector("title") : null;
+      const target =
+        typeof document?.querySelector === "function"
+          ? document.querySelector("title")
+          : null;
       if (typeof MutationObserver !== "undefined" && target) {
         const observer = new MutationObserver(syncBadgeFromTitle);
         observer.observe(target, {
