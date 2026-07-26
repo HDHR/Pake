@@ -150,15 +150,16 @@ pub fn run_app() {
     let multi_window = pake_config.multi_window;
     let _enable_find = pake_config.windows[0].enable_find;
 
+    let mut state_flags = StateFlags::all();
+    if !init_fullscreen {
+        state_flags &= !StateFlags::FULLSCREEN;
+    }
+    if start_to_tray {
+        state_flags &= !StateFlags::VISIBLE;
+    }
+
     let window_state_plugin = WindowStatePlugin::default()
-        .with_state_flags(if init_fullscreen {
-            StateFlags::FULLSCREEN
-        } else {
-            // Prevent flickering on the first open.
-            // Exclude FULLSCREEN so a prior --fullscreen build's persisted state
-            // doesn't force fullscreen on a rebuild without --fullscreen.
-            StateFlags::all() & !StateFlags::VISIBLE & !StateFlags::FULLSCREEN
-        })
+        .with_state_flags(state_flags)
         .build();
 
     #[allow(deprecated)]
@@ -234,20 +235,16 @@ pub fn run_app() {
                     let _ = window_clone.show();
                     reapply_window_icon(&window_clone);
 
-                    // Fixed: Linux fullscreen issue with virtual keyboard
-                    #[cfg(target_os = "linux")]
-                    {
-                        if init_fullscreen {
-                            let _ = window_clone.set_fullscreen(true);
-                            // Ensure webview maintains focus for input after fullscreen
-                            let _ = window_clone.set_focus();
-                        } else {
-                            // Fix: Ubuntu 24.04/GNOME window buttons non-functional until resize (#1122)
-                            // The window manager needs time to process the MapWindow event before
-                            // accepting focus requests. Without this, decorations remain non-interactive.
-                            tokio::time::sleep(tokio::time::Duration::from_millis(30)).await;
-                            let _ = window_clone.set_focus();
-                        }
+                    if init_fullscreen {
+                        let _ = window_clone.set_fullscreen(true);
+                        // Ensure webview maintains focus for input after fullscreen
+                        let _ = window_clone.set_focus();
+                    } else {
+                        // Fix: Ubuntu 24.04/GNOME window buttons non-functional until resize (#1122)
+                        // The window manager needs time to process the MapWindow event before
+                        // accepting focus requests. Without this, decorations remain non-interactive.
+                        tokio::time::sleep(tokio::time::Duration::from_millis(30)).await;
+                        let _ = window_clone.set_focus();
                     }
                 });
             }

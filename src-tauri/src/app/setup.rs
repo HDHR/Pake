@@ -67,7 +67,6 @@ pub fn set_system_tray(
                     let _ = window.unminimize();
                     reapply_window_icon(&window);
                     let _ = window.set_focus();
-                    #[cfg(target_os = "linux")]
                     if _init_fullscreen && !window.is_fullscreen().unwrap_or(false) {
                         let _ = window.set_fullscreen(true);
                         let _ = window.set_focus();
@@ -105,7 +104,6 @@ pub fn set_system_tray(
                             let _ = window.unminimize();
                             reapply_window_icon(&window);
                             let _ = window.set_focus();
-                            #[cfg(target_os = "linux")]
                             if _init_fullscreen && !window.is_fullscreen().unwrap_or(false) {
                                 let _ = window.set_fullscreen(true);
                             }

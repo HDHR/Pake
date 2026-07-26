@@ -607,6 +607,9 @@ export async function mergeConfig(
       '✼ --hide-window-decorations is only supported on Windows and Linux and will be ignored on this platform.',
     );
   }
+  if (options.startToTray) {
+    options.showSystemTray = true;
+  }
   const tauriConfWindowOptions = buildWindowConfigOverrides(options, platform);
   Object.assign(tauriConf.pake.windows[0], { url, ...tauriConfWindowOptions });
 
@@ -642,7 +645,7 @@ export async function mergeConfig(
   if (userAgent.length > 0) {
     tauriConf.pake.user_agent[currentPlatform] = userAgent;
   }
-  tauriConf.pake.system_tray[currentPlatform] = showSystemTray;
+  tauriConf.pake.system_tray[currentPlatform] = options.showSystemTray;
 
   if (platform === 'linux') {
     await mergeLinuxConfig(options, name, tauriConf, linuxBinaryName);
