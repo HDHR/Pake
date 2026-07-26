@@ -45,6 +45,11 @@ on:
       system_tray_icon:
         description: "System tray icon path or URL"
         required: false
+      maximize:
+        description: "Start application maximized"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
       name:
@@ -95,6 +100,11 @@ on:
         description: "System tray icon path or URL"
         type: string
         required: false
+      maximize:
+        description: "Start application maximized"
+        type: boolean
+        required: false
+        default: false
     secrets:
       PAKE_SIGNING_IDENTITY:
         required: false
@@ -225,6 +235,10 @@ jobs:
             ARGS+=("--incognito")
           fi
 
+          if [ "${{ inputs.maximize }}" = "true" ]; then
+            ARGS+=("--maximize")
+          fi
+
           if [ -n "${{ inputs.system_tray_icon }}" ]; then
             ARGS+=("--system-tray-icon" "${{ inputs.system_tray_icon }}")
           fi
@@ -281,6 +295,10 @@ jobs:
 
           if [ "${{ inputs.incognito }}" = "true" ]; then
             ARGS+=("--incognito")
+          fi
+
+          if [ "${{ inputs.maximize }}" = "true" ]; then
+            ARGS+=("--maximize")
           fi
 
           if [ -n "${{ inputs.system_tray_icon }}" ]; then
@@ -361,6 +379,10 @@ jobs:
 
           if ("${{ inputs.incognito }}" -eq "true") {
             $args += "--incognito"
+          }
+
+          if ("${{ inputs.maximize }}" -eq "true") {
+            $args += "--maximize"
           }
 
           if ("${{ inputs.system_tray_icon }}" -ne "") {

@@ -101,6 +101,7 @@ jobs:
       width: ${{ matrix.config.width || 1200 }}
       height: ${{ matrix.config.height || 780 }}
       system_tray_icon: ${{ matrix.config.system_tray_icon || '' }}
+      maximize: ${{ matrix.config.maximize || false }}
 
   # Publish Docker image (runs in parallel with app builds)
   publish-docker:
