@@ -145,6 +145,7 @@ pub fn run_app() {
     let hide_on_close = pake_config.windows[0].hide_on_close;
     let activation_shortcut = pake_config.windows[0].activation_shortcut.clone();
     let init_fullscreen = pake_config.windows[0].fullscreen;
+    let init_maximize = pake_config.windows[0].maximize;
     let start_to_tray = pake_config.windows[0].start_to_tray && show_system_tray; // Only valid when tray is enabled
     let multi_instance = pake_config.multi_instance;
     let multi_window = pake_config.multi_window;
@@ -222,9 +223,10 @@ pub fn run_app() {
                 show_system_tray,
                 &pake_config.system_tray_path,
                 init_fullscreen,
+                init_maximize,
                 multi_window,
             )?;
-            set_global_shortcut(app.app_handle(), activation_shortcut, init_fullscreen)?;
+            set_global_shortcut(app.app_handle(), activation_shortcut, init_fullscreen, init_maximize)?;
 
             // Show window after state restoration to prevent position flashing
             // Unless start_to_tray is enabled, then keep it hidden
@@ -238,6 +240,9 @@ pub fn run_app() {
                     if init_fullscreen {
                         let _ = window_clone.set_fullscreen(true);
                         // Ensure webview maintains focus for input after fullscreen
+                        let _ = window_clone.set_focus();
+                    } else if init_maximize {
+                        let _ = window_clone.maximize();
                         let _ = window_clone.set_focus();
                     } else {
                         // Fix: Ubuntu 24.04/GNOME window buttons non-functional until resize (#1122)

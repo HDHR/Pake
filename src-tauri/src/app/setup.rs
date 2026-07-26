@@ -16,6 +16,7 @@ pub fn set_system_tray(
     show_system_tray: bool,
     tray_icon_path: &str,
     _init_fullscreen: bool,
+    _init_maximize: bool,
     allow_multi_window: bool,
 ) -> tauri::Result<()> {
     if !show_system_tray {
@@ -70,6 +71,9 @@ pub fn set_system_tray(
                     if _init_fullscreen && !window.is_fullscreen().unwrap_or(false) {
                         let _ = window.set_fullscreen(true);
                         let _ = window.set_focus();
+                    } else if _init_maximize && !window.is_maximized().unwrap_or(false) {
+                        let _ = window.maximize();
+                        let _ = window.set_focus();
                     }
                 }
             }
@@ -106,6 +110,8 @@ pub fn set_system_tray(
                             let _ = window.set_focus();
                             if _init_fullscreen && !window.is_fullscreen().unwrap_or(false) {
                                 let _ = window.set_fullscreen(true);
+                            } else if _init_maximize && !window.is_maximized().unwrap_or(false) {
+                                let _ = window.maximize();
                             }
                         }
                     }
@@ -141,6 +147,7 @@ pub fn set_global_shortcut(
     app: &AppHandle,
     shortcut: String,
     _init_fullscreen: bool,
+    _init_maximize: bool,
 ) -> tauri::Result<()> {
     if shortcut.is_empty() {
         return Ok(());
@@ -178,9 +185,10 @@ pub fn set_global_shortcut(
                                 let _ = window.show();
                                 reapply_window_icon(&window);
                                 let _ = window.set_focus();
-                                #[cfg(target_os = "linux")]
                                 if _init_fullscreen && !window.is_fullscreen().unwrap_or(false) {
                                     let _ = window.set_fullscreen(true);
+                                } else if _init_maximize && !window.is_maximized().unwrap_or(false) {
+                                    let _ = window.maximize();
                                 }
                             }
                         }

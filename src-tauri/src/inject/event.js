@@ -1394,8 +1394,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const syncBadgeFromTitle = () => {
       if (pageManagedBadge) return;
-      const title = document.title || "";
-      const match = title.match(/\((\d+)\)/);
+      const title = (typeof document !== "undefined" && document.title) ? document.title : "";
+      
+      // Matches bracketed/parenthesized numbers: (3), [12], ( 5 ), etc.
+      const match = title.match(/[\(\[]\s*(\d+)\s*[\)\]]/);
 
       if (match && match[1]) {
         const count = parseInt(match[1], 10);
@@ -1409,6 +1411,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // Check for unread dot indicators like (•) or (*)
+      if (/[\(\[]\s*[\u2022\*\•]\s*[\)\]]/.test(title)) {
+        if (lastParsedCount !== "•") {
+          lastParsedCount = "•";
+          autoBadgeActive = true;
+          invoke("set_dock_badge_label", { label: "•" }).catch(() => {});
+        }
+        return;
+      }
+
       if (lastParsedCount !== null || autoBadgeActive) {
         lastParsedCount = null;
         autoBadgeActive = false;
@@ -1417,22 +1429,27 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const attachObserver = () => {
-      const target =
-        typeof document?.querySelector === "function"
-          ? document.querySelector("title")
+      const root =
+        typeof document !== "undefined"
+          ? document.documentElement || document.head || document
           : null;
-      if (typeof MutationObserver !== "undefined" && target) {
-        const observer = new MutationObserver(syncBadgeFromTitle);
-        observer.observe(target, {
-          childList: true,
-          subtree: true,
-          characterData: true,
-        });
+      if (typeof MutationObserver !== "undefined" && root) {
+        try {
+          const observer = new MutationObserver(syncBadgeFromTitle);
+          observer.observe(root, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+          });
+        } catch (_) {}
       }
       syncBadgeFromTitle();
+      if (typeof setInterval === "function") {
+        setInterval(syncBadgeFromTitle, 2000);
+      }
     };
 
-    if (document.readyState === "loading") {
+    if (typeof document !== "undefined" && document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", attachObserver);
     } else {
       attachObserver();
