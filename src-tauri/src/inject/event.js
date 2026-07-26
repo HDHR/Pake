@@ -1387,6 +1387,56 @@ document.addEventListener("DOMContentLoaded", () => {
       value: clearAppBadge,
     });
   } catch (_) {}
+
+  // Auto-sync unread counts from document.title (e.g. "(3) WhatsApp", "(12) Slack")
+  function initTitleBadgeObserver() {
+    let lastParsedCount = null;
+
+    const syncBadgeFromTitle = () => {
+      if (pageManagedBadge) return;
+      const title = document.title || "";
+      const match = title.match(/\((\d+)\)/);
+
+      if (match && match[1]) {
+        const count = parseInt(match[1], 10);
+        if (!isNaN(count) && count > 0) {
+          if (lastParsedCount !== count) {
+            lastParsedCount = count;
+            autoBadgeActive = true;
+            invoke("set_dock_badge", { count }).catch(() => {});
+          }
+          return;
+        }
+      }
+
+      if (lastParsedCount !== null || autoBadgeActive) {
+        lastParsedCount = null;
+        autoBadgeActive = false;
+        clearBadge();
+      }
+    };
+
+    const attachObserver = () => {
+      const target = typeof document?.querySelector === "function" ? document.querySelector("title") : null;
+      if (typeof MutationObserver !== "undefined" && target) {
+        const observer = new MutationObserver(syncBadgeFromTitle);
+        observer.observe(target, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+      }
+      syncBadgeFromTitle();
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", attachObserver);
+    } else {
+      attachObserver();
+    }
+  }
+
+  initTitleBadgeObserver();
 })();
 
 function setDefaultZoom() {
