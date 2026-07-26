@@ -1394,8 +1394,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const syncBadgeFromTitle = () => {
       if (pageManagedBadge) return;
-      const title = (typeof document !== "undefined" && document.title) ? document.title : "";
-      
+      const title =
+        typeof document !== "undefined" && document.title ? document.title : "";
+
       // Matches bracketed/parenthesized numbers: (3), [12], ( 5 ), etc.
       const match = title.match(/[\(\[]\s*(\d+)\s*[\)\]]/);
 

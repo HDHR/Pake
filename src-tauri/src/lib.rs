@@ -226,7 +226,12 @@ pub fn run_app() {
                 init_maximize,
                 multi_window,
             )?;
-            set_global_shortcut(app.app_handle(), activation_shortcut, init_fullscreen, init_maximize)?;
+            set_global_shortcut(
+                app.app_handle(),
+                activation_shortcut,
+                init_fullscreen,
+                init_maximize,
+            )?;
 
             // Show window after state restoration to prevent position flashing
             // Unless start_to_tray is enabled, then keep it hidden

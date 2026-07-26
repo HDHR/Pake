@@ -187,7 +187,8 @@ pub fn set_global_shortcut(
                                 let _ = window.set_focus();
                                 if _init_fullscreen && !window.is_fullscreen().unwrap_or(false) {
                                     let _ = window.set_fullscreen(true);
-                                } else if _init_maximize && !window.is_maximized().unwrap_or(false) {
+                                } else if _init_maximize && !window.is_maximized().unwrap_or(false)
+                                {
                                     let _ = window.maximize();
                                 }
                             }
